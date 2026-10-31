@@ -9,7 +9,7 @@ export default async function Home() {
   const caller = createCaller({});
   const initialPage = await caller.tasks.infinite({ limit: 10 });
 
-  return <main className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
+  return <main className="app-frame">
     <LocaleProvider><TrpcProvider><TaskManager initialPage={initialPage} /></TrpcProvider></LocaleProvider>
   </main>;
 }
