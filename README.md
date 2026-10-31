@@ -52,7 +52,9 @@ sequenceDiagram
 - Infinite scrolling with 10-task pages and IntersectionObserver (plus manual load-more fallback).
 - Docker multi-stage build and Docker Compose for repeatable local execution.
 - Portuguese (Brazil) / English interface with `next-intl`, browser language detection, and persisted preference.
-- Vitest tests for in-memory storage, tRPC validation, CRUD and pagination; GitHub Actions CI for lint, typecheck, tests and build.
+- Vitest unit, component and HTTP integration tests for storage, tRPC validation, CRUD, pagination, theme, language and user interactions.
+- Playwright Chromium browser tests for the primary task workflow, theme, language and infinite scrolling.
+- V8 code coverage report with enforced minimums (80% lines/statements/functions, 70% branches) and GitHub Actions CI.
 
 ## Tech stack
 
@@ -82,10 +84,13 @@ npm run start
 npm run lint
 npm run typecheck
 npm run test
+npm run coverage
 npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
-The GitHub Actions workflow runs these checks on pushes and pull requests. A successful CI run is required before treating the case as verified.
+The GitHub Actions workflow runs lint, typecheck, coverage, build, and Playwright tests on pushes and pull requests. Coverage HTML and browser failure traces are uploaded as artifacts. Coverage thresholds apply to the included server, API, component and translation source files, not generated files or configuration. A successful CI run is required before treating the case as verified.
 
 ## Docker
 
@@ -138,7 +143,7 @@ flowchart LR
 - **Theme:** the switch is stored in localStorage and falls back to the operating system preference.
 - **Internationalization:** next-intl handles English and Brazilian Portuguese messages in the client; browser language and saved preference determine the active locale. The SSR document defaults to English, then updates after hydration.
 - **Docker:** the container uses one Node.js process. Restarting it clears in-memory tasks.
-- **Validation:** automated checks are configured in GitHub Actions, but their execution results must be inspected before submission.
+- **Validation:** coverage thresholds and end-to-end tests are newly configured. Inspect the latest CI run and coverage artifact before reporting a measured percentage or claiming validation.
 
 ## Project structure
 
