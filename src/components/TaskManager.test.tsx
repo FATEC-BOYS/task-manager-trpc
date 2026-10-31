@@ -108,6 +108,23 @@ describe("TaskManager interactions", () => {
       expect(mocks.fetchNextPage).toHaveBeenCalled();
     } finally { vi.stubGlobal("IntersectionObserver", original); }
   });
+  it("shows an error when a create mutation fails", () => {
+    mocks.items = [];
+    const original = mocks.create.getMockImplementation();
+    mocks.create.mockImplementationOnce(() => { throw new Error("Create failed"); });
+    mount();
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Failed task" } });
+    expect(() => fireEvent.click(screen.getByRole("button", { name: "+ Add task" }))).toThrow("Create failed");
+    mocks.create.mockImplementation(original);
+  });
+  it("updates the description while editing", () => {
+    mocks.items = [task];
+    mount();
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Edit description" }), { target: { value: "Revised details" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(mocks.update).toHaveBeenCalledWith({ id: task.id, title: task.title, description: "Revised details" });
+  });
   it("provides manual pagination fallback", () => {
     mocks.items = [task]; mocks.hasNextPage = true;
     mount();
