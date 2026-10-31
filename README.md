@@ -51,10 +51,12 @@ sequenceDiagram
 - Artefact-inspired pink and blue palette with a persistent light/dark mode toggle.
 - Infinite scrolling with 10-task pages and IntersectionObserver (plus manual load-more fallback).
 - Docker multi-stage build and Docker Compose for repeatable local execution.
+- Portuguese (Brazil) / English interface with `next-intl`, browser language detection, and persisted preference.
+- Vitest tests for in-memory storage, tRPC validation, CRUD and pagination; GitHub Actions CI for lint, typecheck, tests and build.
 
 ## Tech stack
 
-Next.js 15 (App Router), React 19, TypeScript, tRPC 11, TanStack Query, Zod, Tailwind CSS 4.
+Next.js 15 (App Router), React 19, TypeScript, tRPC 11, TanStack Query, Zod, Tailwind CSS 4, next-intl, Vitest.
 
 ## Run locally
 
@@ -73,6 +75,17 @@ For a production build:
 npm run build
 npm run start
 ```
+
+## Quality checks
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+```
+
+The GitHub Actions workflow runs these checks on pushes and pull requests. A successful CI run is required before treating the case as verified.
 
 ## Docker
 
@@ -123,8 +136,9 @@ flowchart LR
 - **Scope:** no database, login, or external API is necessary for this case. A production version would use persistent storage, authorization, and automated tests.
 - **Security:** tRPC provides typed contracts, **not authentication or authorization**. Zod validates input at the server boundary.
 - **Theme:** the switch is stored in localStorage and falls back to the operating system preference.
+- **Internationalization:** next-intl handles English and Brazilian Portuguese messages in the client; browser language and saved preference determine the active locale. The SSR document defaults to English, then updates after hydration.
 - **Docker:** the container uses one Node.js process. Restarting it clears in-memory tasks.
-- **Validation:** automated build/tests have not yet been executed in this environment.
+- **Validation:** automated checks are configured in GitHub Actions, but their execution results must be inspected before submission.
 
 ## Project structure
 
@@ -136,11 +150,14 @@ src/
   components/
     TaskManager.tsx           # CRUD + infinite scroll
     ThemeToggle.tsx           # Light/dark mode
+    LanguageToggle.tsx        # Language selection
+    LocaleProvider.tsx        # next-intl messages and locale state
     TrpcProvider.tsx          # React Query and tRPC provider
   server/
     routers/tasks.ts          # Typed CRUD procedures + Zod
     routers/index.ts          # App router
     store.ts                  # In-memory task storage
     trpc.ts                   # tRPC initialization
+  i18n/messages.ts             # English / Portuguese strings
   utils/trpc.ts               # Client-side tRPC hooks
 ```
