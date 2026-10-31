@@ -52,8 +52,18 @@ export function TaskManager({ initialPage }: { initialPage: InitialPage }) {
     setEditing(task.id); setEditTitle(task.title); setEditDescription(task.description); setError("");
   }
 
-  return <div className="task-shell">
-    <header className="hero space-y-5">
+  return <div className="workspace-layout">
+    <aside className="sidebar" aria-label="Navegação da página">
+      <div className="sidebar-brand"><span className="brand-dot" />{t("brand")}</div>
+      <nav className="sidebar-nav">
+        <a href="#overview" className="nav-link active"><span>01</span>{t("workspace")}</a>
+        <a href="#create" className="nav-link"><span>02</span>{t("createHeading")}</a>
+        <a href="#tasks" className="nav-link"><span>03</span>{t("tasks")}</a>
+      </nav>
+      <div className="sidebar-note"><span className="status-dot" />{t("loaded", { loaded: tasks.length, total, completed })}</div>
+    </aside>
+    <div className="task-shell">
+    <header id="overview" className="hero space-y-5">
       <div className="flex items-center justify-between gap-4">
         <span className="eyebrow">{t("brand")}</span>
         <div className="flex items-center gap-2"><LanguageToggle /><ThemeToggle /></div>
@@ -68,7 +78,7 @@ export function TaskManager({ initialPage }: { initialPage: InitialPage }) {
       </div>
     </header>
 
-    <section className="create-card card" aria-labelledby="create-heading">
+    <section id="create" className="create-card card" aria-labelledby="create-heading">
       <div className="section-heading"><div><p className="section-kicker">01 / FOCUS</p><h2 id="create-heading">{t("createHeading")}</h2></div><span className="plus-mark">+</span></div>
       <form onSubmit={onCreate} className="create-form">
         <label className="block text-sm font-medium">Title
@@ -84,7 +94,7 @@ export function TaskManager({ initialPage }: { initialPage: InitialPage }) {
     {error && <p role="alert" className="error">{error}</p>}
     {loadError && <p role="alert" className="error">{t("loadError", { message: loadError.message })}</p>}
 
-    <section className="tasks-section" aria-labelledby="tasks-heading">
+    <section id="tasks" className="tasks-section" aria-labelledby="tasks-heading">
       <div className="tasks-heading">
         <div><p className="section-kicker">02 / MOMENTUM</p><h2 id="tasks-heading">{t("tasks")}</h2><p className="muted mt-1 text-sm">{t("loaded", { loaded: tasks.length, total, completed })}</p></div>
         <div className="task-count"><strong>{completed}</strong><span>done</span></div>
@@ -121,5 +131,6 @@ export function TaskManager({ initialPage }: { initialPage: InitialPage }) {
           tasks.length > 0 ? <span className="muted">{t("caught")}</span> : null}
       </div>
     </section>
+    </div>
   </div>;
 }
