@@ -54,6 +54,8 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: radial-
 button:disabled { opacity: .55; cursor: not-allowed; }
 .theme-toggle { min-width: 42px; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 9px 15px; cursor: pointer; color: var(--text); font-size: 13px; }
 .mobile-bottom-nav { display: none; }
+.language-toggle { display: flex; flex-direction: column; gap: 4px; }
+.language-toggle .theme-toggle { min-height: 38px; }
 .error { border-radius: 12px; padding: 12px; background: var(--error-bg); color: var(--error-text); }
 .tasks-heading { align-items: center; margin-bottom: 16px; }
 .task-count { display: flex; align-items: baseline; gap: 6px; padding: 8px 12px; border-radius: 14px; background: var(--surface-alt); color: var(--pink); }
@@ -78,3 +80,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 @media (max-width: 560px) { .hero-panel { padding: 30px 22px; } .hero-orbit { opacity: .35; right: -50px; } .task-card { padding: 18px; } }
 
+
+/* Align the icon-only theme switch with the language select, below its label. */
+.hero > .flex:first-child > .flex:last-child { align-items: flex-end; }
+.hero > .flex:first-child > .flex:last-child > .theme-toggle { height: 38px; min-height: 38px; width: 38px; min-width: 38px; padding: 0; }
