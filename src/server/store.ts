@@ -1,5 +1,3 @@
-import "server-only";
-
 export type Task = { id: string; title: string; description: string; completed: boolean; createdAt: string };
 type Store = { tasks: Task[] };
 const globalStore = globalThis as typeof globalThis & { __taskManagerStore?: Store };
