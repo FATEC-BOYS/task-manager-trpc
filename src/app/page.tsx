@@ -1,8 +1,14 @@
-export default function Home() {
-  return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
-      <h1 className="text-3xl font-bold">Task Manager</h1>
-      <p className="mt-4 text-slate-600">Next.js 15 project initialized. Task CRUD and tRPC integration are the next steps.</p>
-    </main>
-  );
+import { createCaller } from "@/server/routers";
+import { TaskManager } from "@/components/TaskManager";
+import { TrpcProvider } from "@/components/TrpcProvider";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const caller = createCaller({});
+  const initialTasks = await caller.tasks.list();
+
+  return <main className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
+    <TrpcProvider><TaskManager initialTasks={initialTasks} /></TrpcProvider>
+  </main>;
 }
