@@ -1,24 +1,43 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { trpc } from "@/utils/trpc";
+import { ThemeToggle } from "./ThemeToggle";
 import type { Task } from "@/server/store";
 
-export function TaskManager({ initialTasks }: { initialTasks: Task[] }) {
+type InitialPage = { items: Task[]; nextCursor: number | null; total: number };
+
+export function TaskManager({ initialPage }: { initialPage: InitialPage }) {
   const utils = trpc.useUtils();
-  const { data: tasks = initialTasks, error: loadError, isFetching } = trpc.tasks.list.useQuery(undefined, { initialData: initialTasks });
-  const create = trpc.tasks.create.useMutation({ onSuccess: () => { setTitle(""); setDescription(""); setError(""); void utils.tasks.list.invalidate(); } });
-  const update = trpc.tasks.update.useMutation({ onSuccess: () => { setEditing(null); setError(""); void utils.tasks.list.invalidate(); } });
-  const remove = trpc.tasks.delete.useMutation({ onSuccess: () => { setError(""); void utils.tasks.list.invalidate(); } });
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [error, setError] = useState("");
+  const sentinel = useRef<HTMLDivElement>(null);
 
-  const pending = create.isPending || update.isPending || remove.isPending;
+  const { data, error: loadError, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = trpc.tasks.infinite.useInfiniteQuery(
+    { limit: 10 },
+    { initialCursor: 0, getNextPageParam: (lastPage) => lastPage.nextCursor, initialData: { pages: [initialPage], pageParams: [0] } }
+  );
+  const tasks = data?.pages.flatMap((page) => page.items) ?? initialPage.items;
+  const total = data?.pages[0]?.total ?? initialPage.total;
   const completed = tasks.filter((task) => task.completed).length;
+  const refresh = () => { void utils.tasks.infinite.invalidate(); };
+  const create = trpc.tasks.create.useMutation({ onSuccess: () => { setTitle(""); setDescription(""); setError(""); refresh(); } });
+  const update = trpc.tasks.update.useMutation({ onSuccess: () => { setEditing(null); setError(""); refresh(); } });
+  const remove = trpc.tasks.delete.useMutation({ onSuccess: () => { setError(""); refresh(); } });
+  const pending = create.isPending || update.isPending || remove.isPending;
+
+  useEffect(() => {
+    if (!hasNextPage || isFetchingNextPage || !sentinel.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) void fetchNextPage();
+    }, { rootMargin: "240px" });
+    observer.observe(sentinel.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,67 +45,77 @@ export function TaskManager({ initialTasks }: { initialTasks: Task[] }) {
     setError("");
     create.mutate({ title, description }, { onError: (e) => setError(e.message) });
   }
-
   function startEditing(task: Task) {
-    setEditing(task.id);
-    setEditTitle(task.title);
-    setEditDescription(task.description);
-    setError("");
+    setEditing(task.id); setEditTitle(task.title); setEditDescription(task.description); setError("");
   }
 
   return <div className="space-y-8">
-    <header className="space-y-2">
-      <p className="text-sm font-semibold uppercase tracking-widest text-indigo-600">Next.js 15 · tRPC</p>
-      <h1 className="text-4xl font-bold tracking-tight">Task Manager</h1>
-      <p className="text-slate-600">Keep your day organized, one task at a time.</p>
+    <header className="space-y-5">
+      <div className="flex items-center justify-between gap-4">
+        <span className="text-xs font-bold uppercase tracking-[.24em]" style={{ color: "var(--pink)" }}>Artefact-inspired · Technical case</span>
+        <ThemeToggle />
+      </div>
+      <div className="rounded-2xl p-6 sm:p-8" style={{ background: "linear-gradient(115deg,#17233e 0%,#263d6b 60%,#61305c 100%)", color: "white" }}>
+        <p className="mb-3 text-sm font-medium" style={{ color: "#a9caff" }}>Productivity workspace</p>
+        <h1 className="text-4xl font-bold tracking-tight">Task Manager<span style={{ color: "#ff4b91" }}>.</span></h1>
+        <p className="mt-3 text-sm" style={{ color: "#d8e3fa" }}>Organize your work. Focus on what matters.</p>
+      </div>
     </header>
 
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" aria-labelledby="create-heading">
-      <h2 id="create-heading" className="mb-4 text-xl font-semibold">Create a task</h2>
+    <section className="card" aria-labelledby="create-heading">
+      <h2 id="create-heading" className="mb-5 text-xl font-bold">Create a task</h2>
       <form onSubmit={onCreate} className="space-y-4">
         <label className="block text-sm font-medium">Title
-          <input className="mt-1 w-full rounded-lg border border-slate-300 p-3 focus:border-indigo-500 focus:outline-none" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} required placeholder="What needs to be done?" />
+          <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} required placeholder="What needs to be done?" />
         </label>
         <label className="block text-sm font-medium">Description (optional)
-          <textarea className="mt-1 w-full rounded-lg border border-slate-300 p-3 focus:border-indigo-500 focus:outline-none" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} rows={2} placeholder="Add some details" />
+          <textarea className="field" value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} rows={2} placeholder="Add some details" />
         </label>
-        <button disabled={pending} className="rounded-lg bg-indigo-600 px-5 py-3 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">{create.isPending ? "Creating..." : "Add task"}</button>
+        <button disabled={pending} className="primary">{create.isPending ? "Creating..." : "+ Add task"}</button>
       </form>
     </section>
 
-    {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">{error}</p>}
-    {loadError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">Unable to refresh tasks: {loadError.message}</p>}
+    {error && <p role="alert" className="error">{error}</p>}
+    {loadError && <p role="alert" className="error">Unable to load tasks: {loadError.message}</p>}
 
     <section aria-labelledby="tasks-heading">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 id="tasks-heading" className="text-xl font-semibold">Your tasks <span className="text-sm font-normal text-slate-500">({completed}/{tasks.length} completed)</span></h2>
-        {isFetching && <span className="text-xs text-slate-500">Syncing…</span>}
+        <div>
+          <h2 id="tasks-heading" className="text-xl font-bold">Your tasks</h2>
+          <p className="muted mt-1 text-sm">{tasks.length} of {total} loaded · {completed} completed in view</p>
+        </div>
+        {isFetching && !isFetchingNextPage && <span className="muted text-xs">Syncing…</span>}
       </div>
-      {tasks.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">No tasks yet. Create your first one above.</p> :
-        <ul className="space-y-3">{tasks.map((task) => <li key={task.id} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      {tasks.length === 0 ? <p className="card muted text-center">No tasks yet. Create your first one above.</p> :
+        <ul className="space-y-3">{tasks.map((task) => <li key={task.id} className="card">
           {editing === task.id ? <form className="space-y-3" onSubmit={(event) => {
             event.preventDefault();
             if (!editTitle.trim()) { setError("Please enter a task title."); return; }
             update.mutate({ id: task.id, title: editTitle, description: editDescription }, { onError: (e) => setError(e.message) });
           }}>
-            <input aria-label="Edit title" className="w-full rounded-lg border border-slate-300 p-2" value={editTitle} maxLength={120} onChange={(e) => setEditTitle(e.target.value)} required />
-            <textarea aria-label="Edit description" className="w-full rounded-lg border border-slate-300 p-2" value={editDescription} maxLength={500} onChange={(e) => setEditDescription(e.target.value)} />
+            <input aria-label="Edit title" className="field" value={editTitle} maxLength={120} onChange={(e) => setEditTitle(e.target.value)} required />
+            <textarea aria-label="Edit description" className="field" value={editDescription} maxLength={500} onChange={(e) => setEditDescription(e.target.value)} />
             <div className="flex gap-2">
-              <button disabled={pending} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white disabled:opacity-50">Save</button>
-              <button type="button" className="rounded-lg border px-3 py-2 text-sm" onClick={() => setEditing(null)}>Cancel</button>
+              <button disabled={pending} className="primary">Save</button>
+              <button type="button" className="secondary" onClick={() => setEditing(null)}>Cancel</button>
             </div>
           </form> : <div className="flex flex-wrap items-start gap-3">
-            <input type="checkbox" aria-label={`Mark ${task.title} as ${task.completed ? "incomplete" : "complete"}`} checked={task.completed} disabled={pending} onChange={() => update.mutate({ id: task.id, completed: !task.completed }, { onError: (e) => setError(e.message) })} className="mt-1 h-5 w-5 accent-indigo-600" />
+            <input type="checkbox" aria-label={`Mark ${task.title} as ${task.completed ? "incomplete" : "complete"}`} checked={task.completed} disabled={pending} onChange={() => update.mutate({ id: task.id, completed: !task.completed }, { onError: (e) => setError(e.message) })} className="mt-1 h-5 w-5" style={{ accentColor: "var(--pink)" }} />
             <div className="min-w-0 flex-1">
-              <p className={`font-semibold break-words ${task.completed ? "text-slate-400 line-through" : ""}`}>{task.title}</p>
-              {task.description && <p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-500">{task.description}</p>}
+              <p className={`task-title ${task.completed ? "done" : ""}`}>{task.title}</p>
+              {task.description && <p className="muted mt-1 whitespace-pre-wrap break-words text-sm">{task.description}</p>}
             </div>
-            <button className="rounded-lg border px-3 py-2 text-sm hover:bg-slate-50" onClick={() => startEditing(task)} disabled={pending}>Edit</button>
-            <button className="rounded-lg border border-red-200 px-3 py-2 text-sm text-red-700 hover:bg-red-50" onClick={() => {
+            <button className="secondary text-sm" onClick={() => startEditing(task)} disabled={pending}>Edit</button>
+            <button className="secondary danger text-sm" onClick={() => {
               if (window.confirm("Delete this task?")) remove.mutate({ id: task.id }, { onError: (e) => setError(e.message) });
             }} disabled={pending}>Delete</button>
           </div>}
         </li>)}</ul>}
+      <div ref={sentinel} className="py-5 text-center text-sm" aria-live="polite">
+        {isFetchingNextPage ? <span className="muted">Loading more tasks…</span> :
+          hasNextPage ? <button type="button" className="secondary" onClick={() => void fetchNextPage()}>Load more tasks</button> :
+          tasks.length > 0 ? <span className="muted">You’re all caught up.</span> : null}
+      </div>
     </section>
   </div>;
 }
