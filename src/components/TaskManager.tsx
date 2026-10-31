@@ -62,6 +62,11 @@ export function TaskManager({ initialPage }: { initialPage: InitialPage }) {
       </nav>
       <div className="sidebar-note"><span className="status-dot" />{t("loaded", { loaded: tasks.length, total, completed })}</div>
     </aside>
+    <nav className="mobile-bottom-nav" aria-label="Section navigation">
+      <a href="#overview"><span>01</span>{t("workspace")}</a>
+      <a href="#create"><span>02</span>{t("createHeading")}</a>
+      <a href="#tasks"><span>03</span>{t("tasks")}</a>
+    </nav>
     <div className="task-shell">
     <header id="overview" className="hero space-y-5">
       <div className="flex items-center justify-between gap-4">
