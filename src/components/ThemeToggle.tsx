@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 type Theme = "light" | "dark";
 export function ThemeToggle() {
+  const t = useTranslations();
   const [theme, setTheme] = useState<Theme>("light");
   useEffect(() => {
     const stored = window.localStorage.getItem("task-theme");
@@ -17,7 +19,7 @@ export function ThemeToggle() {
     document.documentElement.dataset.theme = next;
     window.localStorage.setItem("task-theme", next);
   }
-  return <button type="button" onClick={toggle} className="theme-toggle" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}>
-    <span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span> {theme === "light" ? "Dark mode" : "Light mode"}
+  return <button type="button" onClick={toggle} className="theme-toggle" aria-label={theme === "light" ? t("darkMode") : t("lightMode")}>
+    <span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span> {theme === "light" ? t("darkMode") : t("lightMode")}
   </button>;
 }
