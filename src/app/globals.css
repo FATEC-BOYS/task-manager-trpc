@@ -1,4 +1,33 @@
 @import "tailwindcss";
 
-:root { color-scheme: light; }
-body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: #f8fafc; color: #0f172a; }
+:root {
+  color-scheme: light;
+  --bg: #f7f8fc; --surface: #ffffff; --surface-alt: #f0f4fb;
+  --text: #202334; --muted: #687087; --border: #dce2ef;
+  --pink: #ff0066; --pink-hover: #df0059; --blue: #569ff7;
+  --error-bg: #fff0f5; --error-text: #a90043;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #10131f; --surface: #1a2030; --surface-alt: #242d41;
+  --text: #f5f7ff; --muted: #adb9d0; --border: #35415a;
+  --pink: #ff4b91; --pink-hover: #ff72a8; --blue: #7ab5ff;
+  --error-bg: #3d1c31; --error-text: #ff9abf;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--text); transition: background .2s,color .2s; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px; box-shadow: 0 8px 30px #00000009; }
+.muted { color: var(--muted); }
+.field { display: block; width: 100%; margin-top: 7px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--text); border-radius: 12px; padding: 12px 14px; outline-offset: 2px; }
+.field:focus { outline: 2px solid var(--blue); }
+.primary { background: var(--pink); color: white; border-radius: 12px; padding: 12px 20px; font-weight: 700; cursor: pointer; }
+.primary:hover { background: var(--pink-hover); }
+.secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px; cursor: pointer; }
+.secondary:hover { border-color: var(--blue); }
+.danger { color: var(--pink); }
+button:disabled { opacity: .55; cursor: not-allowed; }
+.theme-toggle { border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 9px 15px; cursor: pointer; color: var(--text); font-size: 13px; }
+.error { border-radius: 12px; padding: 12px; background: var(--error-bg); color: var(--error-text); }
+.task-title { font-weight: 700; overflow-wrap: anywhere; }
+.task-title.done { text-decoration: line-through; color: var(--muted); }
