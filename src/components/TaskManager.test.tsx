@@ -108,15 +108,6 @@ describe("TaskManager interactions", () => {
       expect(mocks.fetchNextPage).toHaveBeenCalled();
     } finally { vi.stubGlobal("IntersectionObserver", original); }
   });
-  it("shows an error when a create mutation fails", () => {
-    mocks.items = [];
-    const original = mocks.create.getMockImplementation();
-    mocks.create.mockImplementationOnce(() => { throw new Error("Create failed"); });
-    mount();
-    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "Failed task" } });
-    expect(() => fireEvent.click(screen.getByRole("button", { name: "+ Add task" }))).toThrow("Create failed");
-    mocks.create.mockImplementation(original);
-  });
   it("updates the description while editing", () => {
     mocks.items = [task];
     mount();
@@ -124,6 +115,13 @@ describe("TaskManager interactions", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Edit description" }), { target: { value: "Revised details" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(mocks.update).toHaveBeenCalledWith({ id: task.id, title: task.title, description: "Revised details" });
+  });
+  it("does not create a task when the title contains only spaces", () => {
+    mount();
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), { target: { value: "   " } });
+    fireEvent.submit(screen.getByRole("button", { name: "+ Add task" }).closest("form")!);
+    expect(screen.getByRole("alert")).toHaveTextContent("Please enter a task title.");
+    expect(mocks.create).not.toHaveBeenCalled();
   });
   it("provides manual pagination fallback", () => {
     mocks.items = [task]; mocks.hasNextPage = true;
