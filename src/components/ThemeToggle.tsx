@@ -20,6 +20,6 @@ export function ThemeToggle() {
     window.localStorage.setItem("task-theme", next);
   }
   return <button type="button" onClick={toggle} className="theme-toggle" aria-label={theme === "light" ? t("darkMode") : t("lightMode")}>
-    <span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span> {theme === "light" ? t("darkMode") : t("lightMode")}
+    <span aria-hidden="true">{theme === "light" ? "☾" : "☀"}</span>
   </button>;
 }
