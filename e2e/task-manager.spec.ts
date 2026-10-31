@@ -12,7 +12,7 @@ test("task CRUD, theme and language switching", async ({ page }) => {
   await page.getByRole("textbox", { name: "Edit title" }).fill("Review final case");
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page.getByText("Review final case")).toBeVisible();
-  await page.getByRole("checkbox", { name: /mark review final case as complete/i }).check();
+  await page.getByRole("checkbox", { name: /mark review final case as complete/i }).click();
   await expect(page.getByRole("checkbox", { name: /mark review final case as incomplete/i })).toBeChecked();
   await page.getByRole("button", { name: "Dark mode" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
