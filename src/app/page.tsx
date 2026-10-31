@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const caller = createCaller({});
-  const initialTasks = await caller.tasks.list();
+  const initialPage = await caller.tasks.infinite({ limit: 10 });
 
   return <main className="mx-auto max-w-3xl px-5 py-12 sm:py-16">
-    <TrpcProvider><TaskManager initialTasks={initialTasks} /></TrpcProvider>
+    <TrpcProvider><TaskManager initialPage={initialPage} /></TrpcProvider>
   </main>;
 }
