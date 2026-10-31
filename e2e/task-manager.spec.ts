@@ -23,7 +23,7 @@ test("task CRUD, theme and language switching", async ({ page }) => {
   await expect(page.getByText("Review final case")).toHaveCount(0);
 });
 
-test("infinite scroll loads the next page", async ({ page }) => {
+test("pagination loads the next page", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("combobox", { name: /language|idioma/i }).selectOption("en");
   for (let i = 0; i < 12; i++) {
@@ -31,6 +31,10 @@ test("infinite scroll loads the next page", async ({ page }) => {
     await page.getByRole("button", { name: "Add task" }).click();
     await expect(page.getByText(`Pagination ${i}`, { exact: true })).toBeVisible();
   }
-  await expect(page.getByText(/12 of 12 loaded/)).toBeVisible({ timeout: 15000 });
-  await expect(page.locator("li")).toHaveCount(12);
+  const tasks = page.locator("li");
+  if (await page.getByRole("button", { name: "Load more tasks" }).isVisible()) {
+    await page.getByRole("button", { name: "Load more tasks" }).click();
+  }
+  await expect(tasks).toHaveCount(12, { timeout: 15000 });
+  await expect(page.getByText(/12 of 12 loaded/)).toBeVisible();
 });
