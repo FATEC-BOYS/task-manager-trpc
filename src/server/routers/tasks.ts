@@ -6,9 +6,17 @@ import { taskStore } from "../store";
 const title = z.string().trim().min(1, "Title is required").max(120, "Maximum 120 characters");
 const description = z.string().trim().max(500, "Maximum 500 characters");
 const id = z.string().uuid();
+const PAGE_SIZE = 10;
 
 export const tasksRouter = router({
   list: publicProcedure.query(() => taskStore.list()),
+  infinite: publicProcedure.input(z.object({ cursor: z.number().int().nonnegative().nullish(), limit: z.number().int().min(1).max(50).default(PAGE_SIZE) }).optional())
+    .query(({ input }) => {
+      const cursor = input?.cursor ?? 0;
+      const limit = input?.limit ?? PAGE_SIZE;
+      const tasks = taskStore.list();
+      return { items: tasks.slice(cursor, cursor + limit), nextCursor: cursor + limit < tasks.length ? cursor + limit : null, total: tasks.length };
+    }),
   create: publicProcedure.input(z.object({ title, description: description.default("") })).mutation(({ input }) =>
     taskStore.create(input.title, input.description)
   ),
