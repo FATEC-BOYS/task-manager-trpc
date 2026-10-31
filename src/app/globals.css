@@ -52,7 +52,8 @@ body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: radial-
 .secondary:hover { border-color: var(--blue); }
 .danger { color: var(--pink); }
 button:disabled { opacity: .55; cursor: not-allowed; }
-.theme-toggle { border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 9px 15px; cursor: pointer; color: var(--text); font-size: 13px; }
+.theme-toggle { min-width: 42px; min-height: 42px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); border-radius: 99px; padding: 9px 15px; cursor: pointer; color: var(--text); font-size: 13px; }
+.mobile-bottom-nav { display: none; }
 .error { border-radius: 12px; padding: 12px; background: var(--error-bg); color: var(--error-text); }
 .tasks-heading { align-items: center; margin-bottom: 16px; }
 .task-count { display: flex; align-items: baseline; gap: 6px; padding: 8px 12px; border-radius: 14px; background: var(--surface-alt); color: var(--pink); }
@@ -62,10 +63,15 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .task-title { font-weight: 700; overflow-wrap: anywhere; } .task-title.done { text-decoration: line-through; color: var(--muted); }
 .empty-state { padding: 36px 24px; border-style: dashed; }
 @media (max-width: 760px) {
-  .app-frame { padding: 18px 16px 56px; }
+  .app-frame { padding: 18px 16px calc(110px + env(safe-area-inset-bottom)); }
   .workspace-layout { display: block; }
   .sidebar { position: static; min-height: 0; padding: 4px 0 20px; }
-  .sidebar-nav { flex-direction: row; gap: 4px; margin-top: 18px; overflow-x: auto; }
+  .sidebar-nav { display: none; }
+  .mobile-bottom-nav { position: fixed; z-index: 50; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--surface) 96%, transparent); border-top: 1px solid var(--border); box-shadow: 0 -10px 32px #00000018; backdrop-filter: blur(16px); }
+  .mobile-bottom-nav a { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 9px 3px; border-radius: 12px; color: var(--text); font-size: 11px; font-weight: 700; text-align: center; text-decoration: none; }
+  .mobile-bottom-nav a span { color: var(--pink); font-size: 12px; font-weight: 800; }
+  .mobile-bottom-nav a:hover, .mobile-bottom-nav a:focus-visible { background: var(--surface-alt); outline-offset: 2px; }
+  #overview, #create, #tasks { scroll-margin-top: 20px; }
   .nav-link { flex: 0 0 auto; border-left: 0; border-bottom: 2px solid transparent; padding: 9px 8px; }
   .nav-link:hover, .nav-link.active { transform: none; }
   .sidebar-note { display: none; }
